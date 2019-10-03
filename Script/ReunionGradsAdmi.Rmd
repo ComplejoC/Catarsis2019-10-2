@@ -1,0 +1,233 @@
+---
+title: "Sondeo PEAF"
+author: "Sofía Meléndez Cartagena"
+date: "9/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Library
+
+```{r}
+library(tidyverse)
+library(egg)
+```
+
+# Data 
+
+```{r}
+estuPEAF <- read_csv("../Data/Sondeo De Estudiantes de PEAF.csv")
+estuGrad <- read_csv("../Data/Sondeo Estudiantes Graduados de Naturales.csv")
+```
+
+Ubiera sido más facíl usar read.csv? seguramente, pero igual tenia que limpiar los datos y me gusta mucho como se ven los tibbles
+
+# Limpieza de datos
+
+## PEAF
+
+```{r}
+CleanPEAF <- estuPEAF %>%
+  select("A que programa graduado Pertenece?" ,
+         "Es esta la primera vez que recibe PEAF?",
+         "En que mes se le hizo disponible el contratro para firmarlo?",
+         "Si lleno el contrato tarde, por que fue?",
+         "El PEAF que recibe es por:",
+         "Al Sol de Hoy 23 de Septiembre, le Han Pagado?" ) %>%
+  mutate("A que programa graduado Pertenece?" = as.factor(`A que programa graduado Pertenece?`) , 
+         "Es esta la primera vez que recibe PEAF?" = as.factor(`Es esta la primera vez que recibe PEAF?`),
+         "En que mes se le hizo disponible el contratro para firmarlo?" = as.factor(`En que mes se le hizo disponible el contratro para firmarlo?`),
+         "El PEAF que recibe es por:" = as.factor(`El PEAF que recibe es por:`),
+         "Al Sol de Hoy 23 de Septiembre, le Han Pagado?" = as.factor(`Al Sol de Hoy 23 de Septiembre, le Han Pagado?`))
+```
+
+## General Grads
+```{r}
+CleanGrads <- estuGrad %>% 
+  select("A que programa graduado Pertenece?", 
+         "Cursa un Grado de Maestria o Doctorado?",
+         "En que año Cursa?",
+         "¿Al sol de Hoy 23 de Septiembre, le Han Pagado?" ,
+         "¿De dónde provienen sus fondos?",
+         "Entiende Que Todos los Años Se Tiene el Mismo Problema Con los Pagos?" ,
+         "Para usted es importante que se reforme la manera que se procesan los contratos?",  
+         "Tiene Personas Que Dependen De Su Estipendio?",
+         "Tiene Plan Medico?" ,
+         "Piensa que el PEAF Debe Incluir Plan Medico",
+         "Si usted no recibe PEAF, por que firmo la carta que llevo a esta reunion?",
+         "Solo Conteste si Usted Firmo la Carta en Solidaridad.  Recibio una Llamada Telefonica Cuestionando Su Apoyo a Sus Compañeros?", 
+         "Usted Entiende Que Las Llamadas Telefonicas Echas a los Compañeros Solidarios, Son Un Tipo de Persecucion?",
+         "Por que Usted Entiende que Todos los Años se Atrasan los Pagos?") %>%
+  mutate("A que programa graduado Pertenece?" = as.factor(`A que programa graduado Pertenece?`), 
+         "Cursa un Grado de Maestria o Doctorado?" = as.factor(`Cursa un Grado de Maestria o Doctorado?`),
+         "En que año Cursa?" = as.factor(`En que año Cursa?`),
+         "¿Al sol de Hoy 23 de Septiembre, le Han Pagado?" = as.factor(`¿Al sol de Hoy 23 de Septiembre, le Han Pagado?`) ,
+         "¿De dónde provienen sus fondos?" = as.factor(`¿De dónde provienen sus fondos?`),
+         "Entiende Que Todos los Años Se Tiene el Mismo Problema Con los Pagos?" = as.factor(`Entiende Que Todos los Años Se Tiene el Mismo Problema Con los Pagos?`) ,
+         "Para usted es importante que se reforme la manera que se procesan los contratos?" = as.factor(`Para usted es importante que se reforme la manera que se procesan los contratos?`) ,  
+         "Tiene Personas Que Dependen De Su Estipendio?" = as.factor(`Tiene Personas Que Dependen De Su Estipendio?`),
+         "Tiene Plan Medico?" = as.factor(`Tiene Plan Medico?`) ,
+         "Piensa que el PEAF Debe Incluir Plan Medico" = as.factor(`Piensa que el PEAF Debe Incluir Plan Medico`) ,
+         "Si usted no recibe PEAF, por que firmo la carta que llevo a esta reunion?" = as.factor(`Si usted no recibe PEAF, por que firmo la carta que llevo a esta reunion?`),
+         "Solo Conteste si Usted Firmo la Carta en Solidaridad.  Recibio una Llamada Telefonica Cuestionando Su Apoyo a Sus Compañeros?" = as.factor(`Solo Conteste si Usted Firmo la Carta en Solidaridad.  Recibio una Llamada Telefonica Cuestionando Su Apoyo a Sus Compañeros?`), 
+         "Usted Entiende Que Las Llamadas Telefonicas Echas a los Compañeros Solidarios, Son Un Tipo de Persecucion?" = as.factor(`Usted Entiende Que Las Llamadas Telefonicas Echas a los Compañeros Solidarios, Son Un Tipo de Persecucion?`),
+         "Por que Usted Entiende que Todos los Años se Atrasan los Pagos?" = as.factor(`Por que Usted Entiende que Todos los Años se Atrasan los Pagos?`))
+```
+
+Estos datos requieren un toque más de limpieza
+
+```{r}
+CleanGrads$`¿De dónde provienen sus fondos?`<-str_replace(CleanGrads$`¿De dónde provienen sus fondos?`, pattern =".*STEM.*", replacement = "STEM") 
+CleanGrads$`¿De dónde provienen sus fondos?`<-str_replace(CleanGrads$`¿De dónde provienen sus fondos?`, pattern =".*RA.*", replacement = "Convenio") 
+CleanGrads$`¿De dónde provienen sus fondos?`<-str_remove(CleanGrads$`¿De dónde provienen sus fondos?`  ,"N/A Al momento sin fondos.") 
+CleanGrads$`¿De dónde provienen sus fondos?`<-str_replace_na(CleanGrads$`¿De dónde provienen sus fondos?`) 
+CleanGrads$`¿De dónde provienen sus fondos?`<-str_replace(CleanGrads$`¿De dónde provienen sus fondos?`, pattern ="Nasa", replacement = "NASA EPSCoR")
+
+```
+
+
+# Graficas
+
+## PEAF
+
+```{r}
+a <- ggplot(CleanPEAF, aes(x = `A que programa graduado Pertenece?`, fill =`A que programa graduado Pertenece?`)) +
+  geom_bar() +
+  guides(fill = FALSE) +
+  labs(title = "A que programa graduado Pertenece?", x = "", y = "") +
+  theme(text = element_text(size = 10), axis.text.x = element_text(angle = 90, hjust = 1))
+
+b <- ggplot(CleanPEAF, aes(x = `El PEAF que recibe es por:`, fill =`El PEAF que recibe es por:`)) +
+  geom_bar() +
+  guides(fill = FALSE) +
+  labs(title = "El PEAF que recibe es por:", x = "", y = " ") +
+  theme(text = element_text(size = 10))
+ggarrange(a,b, ncol = 2)
+```
+
+```{r}
+a <- ggplot(CleanPEAF, aes(x = `Es esta la primera vez que recibe PEAF?`, fill =`Es esta la primera vez que recibe PEAF?`)) +
+  geom_bar(position = "dodge") +
+  guides(fill = FALSE) +
+  labs(title = "Es esta la primera vez que recibe PEAF?", x = "", y = "") +
+  theme(text = element_text(size = 10))
+
+
+b <- ggplot(CleanPEAF, aes(x = `En que mes se le hizo disponible el contratro para firmarlo?`, fill =`En que mes se le hizo disponible el contratro para firmarlo?`)) +
+  geom_bar(position = "dodge") +
+  guides(fill = FALSE) +
+  labs(title = "Cuando se le hizo disponible el contratro ?", x = "", y = "") +
+  theme(text = element_text(size = 10))
+
+ggarrange(a,b, ncol = 2)
+```
+
+
+```{r}
+ggplot(CleanPEAF, aes(x = `Al Sol de Hoy 23 de Septiembre, le Han Pagado?`, fill =`Al Sol de Hoy 23 de Septiembre, le Han Pagado?`)) +
+  geom_bar(position = "dodge") +
+  guides(fill = FALSE) +
+  labs(title = "Había Cobrado antes de la quincena del 27 de Septiembre?", x = "", y = "") +
+  theme(text = element_text(size = 10))
+```
+
+```{r}
+c <- CleanPEAF %>%
+  group_by(.$`A que programa graduado Pertenece?`) %>%
+  ggplot( aes(x = `Al Sol de Hoy 23 de Septiembre, le Han Pagado?`, fill =`A que programa graduado Pertenece?`)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Había Cobrado antes de la quincena del 27 de Septiembre?", x = "", y = "") +
+  theme(text = element_text(size = 10))
+
+```
+
+```{r}
+d <- CleanPEAF %>%
+  group_by(.$`A que programa graduado Pertenece?`) %>%
+  ggplot( aes(x = `Al Sol de Hoy 23 de Septiembre, le Han Pagado?`, fill =`En que mes se le hizo disponible el contratro para firmarlo?`)) +
+  geom_bar(position = "dodge") +
+  labs( x = "", y = "") +
+  theme(text = element_text(size = 10))
+
+```
+
+```{r}
+ggarrange(c, d)
+```
+
+## General Grads
+
+```{r}
+a <- ggplot(CleanGrads, aes(x = `A que programa graduado Pertenece?`, fill =`A que programa graduado Pertenece?`)) +
+  geom_bar() +
+  guides(fill = FALSE) +
+  labs(title = "A que programa graduado Pertenece?", x = "", y = "") +
+  theme(text = element_text(size = 9))
+
+b <- ggplot(CleanGrads, aes(x = `Cursa un Grado de Maestria o Doctorado?` , fill =`Cursa un Grado de Maestria o Doctorado?`)) +
+  geom_bar(position = "dodge") +
+  guides(fill = FALSE) +
+  labs(title = "Maestria o Doctorado", x = "", y = "") +
+  theme(text = element_text(size = 9))
+
+c <- ggplot(CleanGrads, aes(x = `En que año Cursa?` , fill =`En que año Cursa?`)) +
+  geom_bar(position = "dodge") +
+  guides(fill = FALSE) +
+  labs(title = "Año que Cursa", x = "", y = "") +
+  theme(text = element_text(size = 9))
+
+ggarrange(a,b,c)
+```
+
+```{r}
+CleanGrads %>%
+  filter(`¿De dónde provienen sus fondos?` != "", `¿De dónde provienen sus fondos?` != "NA") %>%
+ggplot(aes(x = `¿Al sol de Hoy 23 de Septiembre, le Han Pagado?` , fill =`¿De dónde provienen sus fondos?`)) +
+  geom_bar(position = "dodge", na.rm = TRUE) +
+  guides() +
+  labs(title = "¿Había Cobrado antes de la quincena del 27 de Septiembre?", x = "", y = "") +
+  theme(text = element_text(size = 9))
+
+```
+
+```{r}
+ggplot(CleanGrads,aes(x = `Entiende Que Todos los Años Se Tiene el Mismo Problema Con los Pagos?` , fill =`Para usted es importante que se reforme la manera que se procesan los contratos?`)) +
+  geom_bar(position = "dodge", na.rm = TRUE) +
+  guides(fill = guide_legend(title = "Deberia haber una reforma?")) +
+  labs(title = "¿Entiende Que Todos los Años Se Tiene el Mismo Problema Con los Pagos?", x = "", y = "") +
+  theme(text = element_text(size = 9)) 
+  
+
+```
+
+```{r}
+CleanGrads %>%
+  filter(.$`Tiene Personas Que Dependen De Su Estipendio?` != "NA") %>%
+  ggplot(aes(x = `Tiene Personas Que Dependen De Su Estipendio?` , fill =`Tiene Personas Que Dependen De Su Estipendio?`)) +
+  guides(fill = FALSE) +
+  geom_bar(position = "dodge", na.rm = TRUE) +
+  labs(title = "¿Tiene Personas Que Dependen De Su Estipendio?", x = "", y = "") +
+  theme(text = element_text(size = 10)) 
+
+```
+
+
+```{r}
+CleanGrads %>%
+  filter(.$`Piensa que el PEAF Debe Incluir Plan Medico` != "NA") %>%
+ggplot(aes(x = `Tiene Plan Medico?` , fill =`Piensa que el PEAF Debe Incluir Plan Medico`)) +
+  geom_bar(position = "dodge", na.rm = TRUE) +
+  guides(fill = guide_legend(title = "El PEAF debe incluir plan medico?")) +
+  labs(title = "¿Tiene Plan Medico?", x = "", y = "") +
+  theme(text = element_text(size = 9)) 
+
+```
+
+```{r}
+summary(CleanGrads$`Si usted no recibe PEAF, por que firmo la carta que llevo a esta reunion?`)
+
+```
+
